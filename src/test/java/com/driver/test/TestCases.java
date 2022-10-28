@@ -17,7 +17,6 @@ import com.driver.Application;
 import com.driver.Director;
 import com.driver.Movie;
 import com.driver.MovieController;
-import com.driver.MovieDirectorPair;
 
 @SpringBootTest(classes = Application.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -31,6 +30,18 @@ public class TestCases {
     public void movieTest1(){
         Movie movie1 = new Movie("Irishman", 193, 7.9);
         movieController.addMovie(movie1);
+
+        Movie movie2 = new Movie("Goodfellas", 123, 8.8);
+        movieController.addMovie(movie2);
+
+        Movie movie3 = new Movie("Fight Club", 145, 8.9);
+        movieController.addMovie(movie3);
+
+        Movie movie4 = new Movie("Heat", 170, 8.2);
+        movieController.addMovie(movie4);
+
+        Movie movie5 = new Movie("Carlito's Way", 144, 7.9);
+        movieController.addMovie(movie5);
 
         ResponseEntity<Movie> response = movieController.getMovieByName(movie1.getName());
         
@@ -47,6 +58,9 @@ public class TestCases {
         Director director1 = new Director("David Fincher", 21, 8.2);
         movieController.addDirector(director1);
 
+        Director director2 = new Director("Martin Scorcesse", 32, 9.1);
+        movieController.addDirector(director2);
+
         ResponseEntity<Director> response = movieController.getDirectorByName(director1.getName());
 
         if(response.getBody() == null){
@@ -59,24 +73,32 @@ public class TestCases {
     @Test
     @Order(3)
     public void movieTest3(){
-        MovieDirectorPair mdp1 = new MovieDirectorPair("Goodfellas", "Martin Scorcesse", 123, 32, 8.9, 9.1);
-        movieController.addMovieDirectorPair(mdp1);
+        
+        movieController.addMovieDirectorPair("Goodfellas", "Martin Scorcesse");
+        movieController.addMovieDirectorPair("Irishman", "Martin Scorcesse");
+        movieController.addMovieDirectorPair("Fight Club", "David Fincher");
 
-        MovieDirectorPair mdp2 = new MovieDirectorPair("Raging Bull", "Martin Scorcesse", 115, 32, 8.2, 9.1);
-        movieController.addMovieDirectorPair(mdp2);
-
-        ResponseEntity<Director> response = movieController.getDirectorByMovieName("Raging Bull");
+        ResponseEntity<List<String>> response = movieController.getMoviesByDirectorName("Martin Scorcesse");
         if(response.getBody() == null){
             assertEquals(false, true);
         }else{
-            assertEquals(response.getBody().getImdbRating(), 9.1);
+            int match = 0;
+            for(String movie: response.getBody()){
+                if(movie.equals("Irishman")){
+                    match++;
+                }else if(movie.equals("Goodfellas")){
+                    match += 4;
+                }
+            }
+
+            assertEquals(match, 5);
         }
     }
 
     @Test
     @Order(4)
     public void movieTest4(){
-        ResponseEntity<List<String>> response = movieController.getMoviesByDirectorName("Martin Scorcesse");
+        ResponseEntity<List<String>> response = movieController.getAllMovies();
         List<String> movies = response.getBody();
 
         if(response.getBody() == null){
@@ -86,20 +108,26 @@ public class TestCases {
         int match = 0;
 
         for(String movie: movies){
-            if(movie.equals("Goodfellas")){
+            if(movie.equals("Irishman")){
                 match++;
-            }else if(movie.equals("Raging Bull")){
-                match += 2;
+            }else if(movie.equals("Goodfellas")){
+                match += 4;
+            }else if(movie.equals("Fight Club")){
+                match += 9;
+            }else if(movie.equals("Heat")){
+                match += 11;
+            }else if(movie.equals("Carlito's Way")){
+                match += 14;
             }
         }
 
-        assertEquals(match, 3);
+        assertEquals(match, 39);
     }
 
     @Test
     @Order(5)
     public void movieTest5(){
-        movieController.deleteMovieByName("Raging Bull");
+        movieController.deleteDirectorByName("David Fincher");
 
         ResponseEntity<List<String>> response = movieController.getAllMovies();
         List<String> movies = response.getBody();
@@ -115,18 +143,22 @@ public class TestCases {
                 match++;
             }else if(movie.equals("Goodfellas")){
                 match += 4;
-            }else if(movie.equals("Raging Bull")){
+            }else if(movie.equals("Fight Club")){
                 match += 9;
+            }else if(movie.equals("Heat")){
+                match += 11;
+            }else if(movie.equals("Carlito's Way")){
+                match += 14;
             }
         }
 
-        assertEquals(match, 5);
+        assertEquals(match, 30);
     }
 
     @Test
     @Order(6)
     public void movieTest6(){
-        movieController.deleteAllMovies();
+        movieController.deleteAllDirectors();
         ResponseEntity<List<String>> response = movieController.getAllMovies();
         List<String> movies = response.getBody();
 
@@ -134,23 +166,36 @@ public class TestCases {
             assertEquals(false, true);
         }
 
-        assertEquals(movies.size(), 0);
+        assertEquals(movies.size(), 2);
     }
 
     @Test
     @Order(7)
     public void movieTest7(){
-        Movie movie1 = new Movie("Fight Club", 145, 8.9);
-        movieController.addMovie(movie1);
-
-        movieController.deleteMovieByName("Fight Club");
-
+        movieController.deleteAllDirectors();
         ResponseEntity<List<String>> response = movieController.getAllMovies();
-        
+        List<String> movies = response.getBody();
+
         if(response.getBody() == null){
             assertEquals(false, true);
-        }else{
-            assertEquals(response.getBody().size(), 0);
         }
+
+        int match = 0;
+
+        for(String movie: movies){
+            if(movie.equals("Irishman")){
+                match++;
+            }else if(movie.equals("Goodfellas")){
+                match += 4;
+            }else if(movie.equals("Fight Club")){
+                match += 9;
+            }else if(movie.equals("Heat")){
+                match += 11;
+            }else if(movie.equals("Carlito's Way")){
+                match += 14;
+            }
+        }
+
+        assertEquals(match, 25);
     }
 }
